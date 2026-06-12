@@ -262,6 +262,88 @@ body::before {
   padding:0 4px;
 }
 
+
+/* CALCULATING RESULT */
+.calculating-wrap {
+  text-align:center;
+  padding:10px 0 4px;
+}
+.calc-circle {
+  width:126px;
+  height:126px;
+  margin:0 auto 24px;
+  border-radius:50%;
+  background:conic-gradient(var(--hot-pink) 0deg, rgba(229,58,145,0.12) 0deg);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 0 28px rgba(229,58,145,0.22);
+  transition:background 0.12s linear;
+  position:relative;
+}
+.calc-circle::before {
+  content:'';
+  position:absolute;
+  width:98px;
+  height:98px;
+  border-radius:50%;
+  background:var(--plum-mid);
+  border:1px solid var(--border-pink);
+}
+.calc-percent {
+  position:relative;
+  z-index:1;
+  font-family:'Fraunces', serif;
+  font-size:28px;
+  font-weight:700;
+  color:var(--text-white);
+}
+.calc-title {
+  font-family:'Fraunces', serif;
+  font-size:28px;
+  font-weight:700;
+  line-height:1.22;
+  color:var(--text-white);
+  margin-bottom:14px;
+  letter-spacing:-0.01em;
+}
+.calc-title em {
+  color:var(--hot-pink);
+  font-style:italic;
+}
+.calc-text {
+  font-size:15px;
+  line-height:1.65;
+  color:var(--text-soft-pink);
+  font-weight:300;
+  margin-bottom:18px;
+}
+.calc-steps {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:22px;
+  text-align:left;
+}
+.calc-step {
+  background:rgba(30,15,24,0.55);
+  border:1px solid var(--border-pink);
+  border-radius:12px;
+  padding:11px 14px;
+  font-size:13px;
+  color:var(--muted-pink);
+  transition:all 0.25s ease;
+}
+.calc-step.active {
+  border-color:rgba(229,58,145,0.45);
+  color:var(--text-lighter-pink);
+  background:rgba(229,58,145,0.07);
+  transform:translateX(4px);
+}
+.calc-step.done {
+  color:var(--text-lighter-pink);
+}
+
 /* ANIMATIONS */
 @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
@@ -443,26 +525,10 @@ function goBackQ(qi){
   updateProgress(qi);transitionTo('screen-q-'+qi);
 }
 function showResult(){
-  var winner=Object.keys(scores).sort(function(a,b){return scores[b]-scores[a];})[0];
-  var r=results[winner];
-  document.getElementById('resultContainer').innerHTML=
-    '<div class="screen active" id="screen-result">'+
-    '<div class="result-label">'+r.label+'</div>'+
-    '<div class="result-badge">'+r.badge+'</div>'+
-    '<h2 class="result-headline">'+r.headline+'</h2>'+
-    '<div class="result-body">'+r.body+'</div>'+
-    '<div class="result-divider"></div>'+
-    '<div class="action-block"><div class="action-label">Your Action This Week</div>'+
-    '<div class="action-text">'+r.action+'</div></div>'+
-    '<div class="cta-wrapper">'+
-    '<p class="cta-bridge">'+r.bridge+'</p>'+
-    '<a href="https://api.leadconnectorhq.com/widget/booking/KxS59Li013Proe6dAI5Q" target="_blank" class="cta-button">'+
-    'Book Your Free StrongHER Clarity Call <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>'+
-    '<p class="cta-sub">Free 20-minute call &middot; No obligation &middot; Limited spots</p>'+
-    '<button class="retake-btn" onclick="retake()">Retake the quiz</button>'+
-    '</div></div>';
+  calculateResult();
+  showScreen('calculating');
   document.getElementById('progressWrapper').style.display='none';
-  document.querySelectorAll('.screen').forEach(function(s){if(s.id!=='screen-result'){s.classList.remove('active');s.style.display='none';}});
+  startCalculatingAnimation();
 }
 function updateProgress(n){
   document.getElementById('progressFill').style.width=((n/7)*100)+'%';
@@ -481,7 +547,66 @@ function showScreen(id){
   t.style.display='block';
   requestAnimationFrame(function(){t.classList.add('active');});
 }
+function calculateResult(){
+  var winner=Object.keys(scores).sort(function(a,b){return scores[b]-scores[a];})[0];
+  var r=results[winner];
+  document.getElementById('resultContainer').innerHTML=
+    '<div class="screen active" id="screen-result">'+
+    '<div class="result-label">'+r.label+'</div>'+
+    '<div class="result-badge">'+r.badge+'</div>'+
+    '<h2 class="result-headline">'+r.headline+'</h2>'+
+    '<div class="result-body">'+r.body+'</div>'+
+    '<div class="result-divider"></div>'+
+    '<div class="action-block"><div class="action-label">Your Action This Week</div>'+
+    '<div class="action-text">'+r.action+'</div></div>'+
+    '<div class="cta-wrapper">'+
+    '<p class="cta-bridge">'+r.bridge+'</p>'+
+    '<a href="https://api.leadconnectorhq.com/widget/booking/KxS59Li013Proe6dAI5Q" target="_blank" class="cta-button">'+
+    'Book Your Free StrongHER Clarity Call <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>'+
+    '<p class="cta-sub">Free 20-minute call &middot; No obligation &middot; Limited spots</p>'+
+    '<button class="retake-btn" onclick="retake()">Retake the quiz</button>'+
+    '</div></div>';
+document.querySelectorAll('.screen').forEach(function(s){if(s.id!=='screen-result'){s.classList.remove('active');s.style.display='none';}});
+}
+
+function startCalculatingAnimation(){
+  var circle=document.getElementById('calcCircle');
+  var percent=document.getElementById('calcPercent');
+  var steps=[
+    document.getElementById('calcStep1'),
+    document.getElementById('calcStep2'),
+    document.getElementById('calcStep3')
+  ];
+  var duration=5000;
+  var start=Date.now();
+  function tick(){
+    var elapsed=Date.now()-start;
+    var progress=Math.min(elapsed/duration,1);
+    var pct=Math.round(progress*100);
+    var deg=Math.round(progress*360);
+    if(circle) circle.style.background='conic-gradient(var(--hot-pink) '+deg+'deg, rgba(229,58,145,0.12) '+deg+'deg)';
+    if(percent) percent.textContent=pct+'%';
+    steps.forEach(function(step,idx){
+      if(!step)return;
+      var threshold=(idx+1)/3;
+      step.classList.toggle('active', progress >= idx/3 && progress < threshold);
+      step.classList.toggle('done', progress >= threshold);
+    });
+    if(progress<1){
+      requestAnimationFrame(tick);
+    }else{
+      setTimeout(function(){
+        showScreen('result');
+      },180);
+    }
+  }
+  tick();
+}
+
 function retake(){
+  var cc=document.getElementById('calcCircle'); if(cc) cc.style.background='conic-gradient(var(--hot-pink) 0deg, rgba(229,58,145,0.12) 0deg)';
+  var cp=document.getElementById('calcPercent'); if(cp) cp.textContent='0%';
+  document.querySelectorAll('.calc-step').forEach(function(s){s.classList.remove('active','done');});
   answers=[];scores={burnout:0,metabolic:0,restarter:0};isAdvancing=false;
   document.getElementById('resultContainer').innerHTML='';
   document.querySelectorAll('.choice').forEach(function(c){c.classList.remove('selected');});
