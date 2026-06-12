@@ -388,7 +388,7 @@ var results={
   }
 };
 
-var answers=[],scores={burnout:0,metabolic:0,restarter:0},built=false;
+var answers=[],scores={burnout:0,metabolic:0,restarter:0},built=false,isAdvancing=false;
 
 function startQuiz(){
   document.getElementById('progressWrapper').style.display='block';
@@ -412,19 +412,20 @@ function buildQuestions(){
       }).join('')+
       '</div><div class="button-row">'+
       '<button class="btn-secondary" onclick="goBackQ('+i+')">&#8592; Back</button>'+
-      '<button class="btn-primary" id="nb'+i+'" disabled onclick="nextQ('+i+')" style="opacity:0.4;cursor:not-allowed;">'+
-      (i<6?'Next Question':'See My Result')+
-      ' <svg viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
-      '</button></div>';
+      '</div>';
     c.appendChild(d);
   });
 }
 function pick(qi,ci,el){
+  if(isAdvancing)return;
+  isAdvancing=true;
   el.closest('.choices').querySelectorAll('.choice').forEach(function(c){c.classList.remove('selected');});
   el.classList.add('selected');
   answers[qi]=ci;
-  var b=document.getElementById('nb'+qi);
-  b.disabled=false; b.style.opacity='1'; b.style.cursor='pointer';
+  setTimeout(function(){
+    nextQ(qi);
+    isAdvancing=false;
+  },260);
 }
 function nextQ(qi){
   if(answers[qi]===undefined)return;
@@ -481,10 +482,9 @@ function showScreen(id){
   requestAnimationFrame(function(){t.classList.add('active');});
 }
 function retake(){
-  answers=[];scores={burnout:0,metabolic:0,restarter:0};
+  answers=[];scores={burnout:0,metabolic:0,restarter:0};isAdvancing=false;
   document.getElementById('resultContainer').innerHTML='';
   document.querySelectorAll('.choice').forEach(function(c){c.classList.remove('selected');});
-  document.querySelectorAll('[id^="nb"]').forEach(function(b){b.disabled=true;b.style.opacity='0.4';b.style.cursor='not-allowed';});
   document.querySelectorAll('.screen').forEach(function(s){s.style.display='none';s.classList.remove('active','exit');});
   document.getElementById('progressWrapper').style.display='none';
   document.getElementById('screen-welcome').style.display='block';
